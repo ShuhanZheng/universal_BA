@@ -2,12 +2,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22870937.svg)](https://doi.org/10.5281/zenodo.22870937)
 
 A self-contained Bayesian pipeline (PCA + Gaussian-process emulator + Hamiltonian Monte Carlo)
 distilled from the framework behind Ref. [1]. To apply it to a new problem you edit `Input.py`
 only; the analyser in `Class.py` stays untouched.
 
-Given experimental data $\boldsymbol{y}\_{\rm exp}$ with covariance $\{\Sigma_{\mathrm{exp}}\}$ and a simulator — either an explicit function $y(x)$ or a table of theory predictions $\{\boldsymbol{y}_{\mathrm{th}}(\boldsymbol{x}_n)\}$ — it samples the posterior of the parameters.
+Given experimental data $\boldsymbol{y}\_{\rm exp}$ with covariance $\lbrace\Sigma\_{\mathrm{exp}}\rbrace$ and a simulator — either an explicit function $y(x)$ or a table of theory predictions $\lbrace\boldsymbol{y}\_{\mathrm{th}}(\boldsymbol{x}\_n)\rbrace$ — it samples the posterior of the parameters.
 
 ## Layout
 
@@ -78,13 +79,13 @@ To apply the pipeline to your own problem:
 
 | File | Shape | Role |
 |---|---|---|
-| `bottomonium_param.dat` | 200 × 6 | design $\{x_n\}$: 5 sampled parameters + 1 fixed ($T_d$) |
-| `filtered_bottomonium_results.dat` | 200 × 57 | theory table $\{y_{\mathrm{th}}(x_n)\}$ |
-| `filtered_exp_data.dat` | 57 | $\boldsymbol{y}_{\mathrm{exp}}$ |
+| `bottomonium_param.dat` | 200 × 6 | design $\lbrace x\_n\rbrace$: 5 sampled parameters + 1 fixed ($T\_d$) |
+| `filtered_bottomonium_results.dat` | 200 × 57 | theory table $\lbrace y\_{\mathrm{th}}(x\_n)\rbrace$ |
+| `filtered_exp_data.dat` | 57 | $\boldsymbol{y}\_{\mathrm{exp}}$ |
 | `filtered_exp_stat.dat` | 57 | diagonal statistical variances |
 | `syst_cov_matrix.dat` | 57 × 57 | systematic covariance matrix |
 
-The active `config` reproduces a run at $T_d = 180$ MeV and writes its output under the
+The active `config` reproduces a run at $T\_d = 180$ MeV and writes its output under the
 `*_Td018` / `HMC_plot_Td018` names, kept separate from the general defaults so that neither the
 saved model nor the archived samples are overwritten.
 
@@ -95,11 +96,11 @@ saved model nor the archived samples are overwritten.
 | Field | Meaning |
 |---|---|
 | `input_dir` | directory holding all data files; resolved relative to the working directory |
-| `parameter_file` | design $\{x_n\}$; one row of `N_parameter + len(fixed_params)` columns per point |
-| `theoretical_data_file` | theory table $\{y_{\mathrm{th}}(x_n)\}$; one observable vector per row |
-| `experimental_data_file` | $\boldsymbol{y}_{\mathrm{exp}}$ (1D) |
-| `experimental_sigma_stat_file` | $\Sigma_{\mathrm{exp}}^{\mathrm{stat}}$: diagonal variances (1D) |
-| `experimental_sigma_syst_file` | $\Sigma_{\mathrm{exp}}^{\mathrm{syst}}$: covariance matrix (2D) |
+| `parameter_file` | design $\lbrace x\_n\rbrace$; one row of `N_parameter + len(fixed_params)` columns per point |
+| `theoretical_data_file` | theory table $\lbrace y\_{\mathrm{th}}(x\_n)\rbrace$; one observable vector per row |
+| `experimental_data_file` | $\boldsymbol{y}\_{\mathrm{exp}}$ (1D) |
+| `experimental_sigma_stat_file` | $\Sigma\_{\mathrm{exp}}^{\mathrm{stat}}$: diagonal variances (1D) |
+| `experimental_sigma_syst_file` | $\Sigma\_{\mathrm{exp}}^{\mathrm{syst}}$: covariance matrix (2D) |
 
 With `analytical=True` neither the design nor the theory table is read, so those two fields are
 ignored.
@@ -111,10 +112,10 @@ ignored.
 | `N_parameter` | number of parameters to estimate, $d$ |
 | `Bayesian_bound` | range of each parameter; length **must equal** `N_parameter` |
 | `parameter_names` | name of each parameter (LaTeX), length **must equal** `N_parameter` |
-| `fixed_params` | parameters appended at the end of the sampled vector and held fixed (e.g. $T_d$) |
+| `fixed_params` | parameters appended at the end of the sampled vector and held fixed (e.g. $T\_d$) |
 | `analytical` / `analytical_model` | `True`: explicit emulator, zero theoretical error, PCA+GP skipped; define `analytical_model(x)` |
 | `n_pca_components` | number of principal components kept (`analytical=False` only) |
-| `delta_t`, `leapfrog_steps` | leapfrog step size $\delta_t$ and steps per trajectory $N_t$ |
+| `delta_t`, `leapfrog_steps` | leapfrog step size $\delta\_t$ and steps per trajectory $N\_t$ |
 | `target_number`, `burn_in`, `decorrelation_length` | kept samples per chain / burn-in steps / decorrelation length |
 | `n_chains`, `random_seed` | number of parallel chains / RNG seed |
 | `gradient_epsilon` | finite-difference step used by `scipy.optimize.approx_fprime` (`analytical=True` branch only) |
@@ -139,45 +140,45 @@ mapped to the code object that holds it. The formalism itself is the one of Ref.
 | Symbol | Code |
 |---|---|
 | $\boldsymbol{x}$ | sampled parameter vector (`current_x`, `x_t`), length $d$ = `config.N_parameter` |
-| $\boldsymbol{x}_{\mathrm{full}}$ | `x_full = np.append(x, config.fixed_params)` |
-| $\boldsymbol{y}_{\mathrm{exp}}$, $N$ | `data_loader.experimental_data` |
+| $\boldsymbol{x}\_{\mathrm{full}}$ | `x_full = np.append(x, config.fixed_params)` |
+| $\boldsymbol{y}\_{\mathrm{exp}}$, $N$ | `data_loader.experimental_data` |
 | $\boldsymbol{y}(\boldsymbol{x})$ | first return of `Interpolator.predict(x_full)` |
 | $\Delta\boldsymbol{y}$ | `delta_y = mu_x - data_loader.experimental_data` |
-| $\Sigma_{\mathrm{exp}}$ | `data_loader.Cov_exp = np.diag(experimental_sigma_stat) + experimental_sigma_syst` |
-| $\Sigma_{\mathrm{th}}(\boldsymbol{x})$ | second return of `Interpolator.predict(x_full)` |
+| $\Sigma\_{\mathrm{exp}}$ | `data_loader.Cov_exp = np.diag(experimental_sigma_stat) + experimental_sigma_syst` |
+| $\Sigma\_{\mathrm{th}}(\boldsymbol{x})$ | second return of `Interpolator.predict(x_full)` |
 | $\Sigma(\boldsymbol{x})$ | `Cov = Cov_x + self.Cov_exp` |
 | $V(\boldsymbol{x})$ | `0.5 * chi_square(x)` |
 | $f$ | `config.variance_inflation` (`self.variance_inflation`) |
-| $\boldsymbol{U},\ \boldsymbol{U}^{\dagger}$ | `pca.components_` ($n_{\mathrm{pc}}\times N$) and its transpose |
+| $\boldsymbol{U},\ \boldsymbol{U}^{\dagger}$ | `pca.components_` ($n\_{\mathrm{pc}}\times N$) and its transpose |
 | $\overline{\boldsymbol{y}}$ | `pca.mean_` |
-| $P_m(\boldsymbol{x}),\ \boldsymbol{P}(\boldsymbol{x})$ | per-PC `gp.predict` mean; `Y_pred_pca` |
-| $P_q$ | PC training targets; `gp.y_train_` holds them `normalize_y`-rescaled, undone in `_ensure_gradient_cache` by `* y_std + y_mean` |
-| $\sigma^2_{P,m}(\boldsymbol{x})$ | `gp.predict(..., return_std=True)` squared |
-| $K_m$ | `gp.kernel_(gp.X_train_)` (+ the $10^{-10}$ ridge `gp.alpha`) |
-| $l_m,\ C_m,\ \sigma^2_{\mathrm{wn},m}$ | `gp.kernel_.k1.k2.length_scale`, `gp.kernel_.k1.k1.constant_value`, `gp.kernel_.k2.noise_level` |
-| $\boldsymbol{x}_p$ | `gp.X_train_` |
-| $\delta_t,\ N_t$ | `config.delta_t`, `config.leapfrog_steps` |
+| $P\_m(\boldsymbol{x}),\ \boldsymbol{P}(\boldsymbol{x})$ | per-PC `gp.predict` mean; `Y_pred_pca` |
+| $P\_q$ | PC training targets; `gp.y_train_` holds them `normalize_y`-rescaled, undone in `_ensure_gradient_cache` by `* y_std + y_mean` |
+| $\sigma^2\_{P,m}(\boldsymbol{x})$ | `gp.predict(..., return_std=True)` squared |
+| $K\_m$ | `gp.kernel_(gp.X_train_)` (+ the $10^{-10}$ ridge `gp.alpha`) |
+| $l\_m,\ C\_m,\ \sigma^2\_{\mathrm{wn},m}$ | `gp.kernel_.k1.k2.length_scale`, `gp.kernel_.k1.k1.constant_value`, `gp.kernel_.k2.noise_level` |
+| $\boldsymbol{x}\_p$ | `gp.X_train_` |
+| $\delta\_t,\ N\_t$ | `config.delta_t`, `config.leapfrog_steps` |
 
 ### 2. Posterior and likelihood
 
 $$
-\mathcal{P}_{\mathrm{posterior}}(\boldsymbol{x}\mid\boldsymbol{y}_{\mathrm{exp}})
-=\frac{\mathcal{P}(\boldsymbol{y}_{\mathrm{exp}}\mid\boldsymbol{y}(\boldsymbol{x}))\,
-\mathcal{P}_{\mathrm{prior}}(\boldsymbol{x})}{\mathcal{P}(\boldsymbol{y}_{\mathrm{exp}})}
+\mathcal{P}\_{\mathrm{posterior}}(\boldsymbol{x}\mid\boldsymbol{y}\_{\mathrm{exp}})
+=\frac{\mathcal{P}(\boldsymbol{y}\_{\mathrm{exp}}\mid\boldsymbol{y}(\boldsymbol{x}))\thinspace
+\mathcal{P}\_{\mathrm{prior}}(\boldsymbol{x})}{\mathcal{P}(\boldsymbol{y}\_{\mathrm{exp}})}
 \tag{1}
 $$
 
 $$
-\mathcal{P}(\boldsymbol{y}_{\mathrm{exp}}\mid\boldsymbol{y}(\boldsymbol{x}))
+\mathcal{P}(\boldsymbol{y}\_{\mathrm{exp}}\mid\boldsymbol{y}(\boldsymbol{x}))
 =\frac{\exp\left[-\frac{1}{2}\Delta\boldsymbol{y}^{T}\Sigma^{-1}(\boldsymbol{x})\Delta\boldsymbol{y}\right]}
 {\sqrt{(2\pi)^{N}\det[\Sigma(\boldsymbol{x})]}}
 \tag{2}
 $$
 
 $$
-\Sigma(\boldsymbol{x})=\Sigma_{\mathrm{th}}(\boldsymbol{x})+\Sigma_{\mathrm{exp}},
+\Sigma(\boldsymbol{x})=\Sigma\_{\mathrm{th}}(\boldsymbol{x})+\Sigma\_{\mathrm{exp}},
 \qquad
-\Delta\boldsymbol{y}=\boldsymbol{y}(\boldsymbol{x})-\boldsymbol{y}_{\mathrm{exp}}
+\Delta\boldsymbol{y}=\boldsymbol{y}(\boldsymbol{x})-\boldsymbol{y}\_{\mathrm{exp}}
 \tag{3}
 $$
 
@@ -203,7 +204,7 @@ $$
 $$
 
 $$
-f_i=f_{\text{final}}\,a^{\,1-i/N_{\text{burn}}},\qquad i\le N_{\text{burn}}
+f\_i=f\_{\text{final}}\thinspace a^{\thinspace1-i/N\_{\text{burn}}},\qquad i\le N\_{\text{burn}}
 \tag{6}
 $$
 
@@ -214,12 +215,12 @@ $$
 - **The $1/f$ multiplies the residual quadratic form only**, never $\ln\det\Sigma$. Dividing
   everything by $f$ would flatten the $\boldsymbol{x}$-dependence of $\ln\det\Sigma$ and distort the
   posterior; the analytic gradient, Eq. (10), keeps the same placement.
-- If `analytical=True`, $\Sigma=\Sigma_{\mathrm{exp}}$ is $\boldsymbol{x}$-independent, so the code
+- If `analytical=True`, $\Sigma=\Sigma\_{\mathrm{exp}}$ is $\boldsymbol{x}$-independent, so the code
   takes the shortcut `(delta_y @ self._cov_inv @ delta_y.T + self._logdet) / f`, which differs from
   Eq. (5) by an $\boldsymbol{x}$-independent constant only.
 - Eq. (6) ↔ `self.variance_inflation = self._f_final * self.annealing_factor ** (1.0 - i / self.burn_in)`
-  in `MCMCSampler.sample` ($a$ ↔ `config.annealing_factor`, $N_{\text{burn}}$ ↔ `config.burn_in`);
-  for $i>N_{\text{burn}}$ the inflation equals $f_{\text{final}}$ exactly, so the sampled posterior
+  in `MCMCSampler.sample` ($a$ ↔ `config.annealing_factor`, $N\_{\text{burn}}$ ↔ `config.burn_in`);
+  for $i>N\_{\text{burn}}$ the inflation equals $f\_{\text{final}}$ exactly, so the sampled posterior
   is untouched. $a=1$ disables it.
 
 ### 4. Emulator: PCA + GP
@@ -227,111 +228,111 @@ $$
 $$
 \boldsymbol{y}(\boldsymbol{x})=\boldsymbol{U}^{\dagger}\boldsymbol{P}(\boldsymbol{x})+\overline{\boldsymbol{y}},
 \qquad
-\Sigma_{\mathrm{th}}(\boldsymbol{x})=2\,\boldsymbol{U}^{\dagger}\,
-\mathrm{diag}\big(\sigma^2_{P,1}(\boldsymbol{x}),\sigma^2_{P,2}(\boldsymbol{x}),\dots\big)\boldsymbol{U}
+\Sigma\_{\mathrm{th}}(\boldsymbol{x})=2\thinspace\boldsymbol{U}^{\dagger}\thinspace
+\mathrm{diag}\big(\sigma^2\_{P,1}(\boldsymbol{x}),\sigma^2\_{P,2}(\boldsymbol{x}),\dots\big)\boldsymbol{U}
 \tag{7}
 $$
 
 - $\boldsymbol{U}$ ↔ `pca.components_` (rows = principal directions), so $\boldsymbol{U}^{\dagger}=\boldsymbol{U}^{T}$
   is the decoding matrix; $\overline{\boldsymbol{y}}$ ↔ `pca.mean_`.
 - $\boldsymbol{y}(\boldsymbol{x})$ ↔ `Y_pred_original = np.array(Y_pred_pca) @ Unitary + mu` in `Interpolator.predict`.
-- $\Sigma_{\mathrm{th}}(\boldsymbol{x})$ ↔ `Interpolator.sigma_th_from_var(Y_std_pca ** 2)`. The factor 2 is the paper
-  convention $\Sigma_{\mathrm{th}}=2\Sigma_{\mathrm{Gauss}}$, "the uncertainty of the Schrödinger
+- $\Sigma\_{\mathrm{th}}(\boldsymbol{x})$ ↔ `Interpolator.sigma_th_from_var(Y_std_pca ** 2)`. The factor 2 is the paper
+  convention $\Sigma\_{\mathrm{th}}=2\Sigma\_{\mathrm{Gauss}}$, "the uncertainty of the Schrödinger
   evolution framework"; it appears in the code exactly once, inside `sigma_th_from_var`, and must not
   be dropped — the trace and quadratic terms of Eq. (10) scale with it.
 - PCA is trained in `Interpolator.fit` on the theory table: `PCA(n_components=config.n_pca_components)`,
   `Y_pca = pca.fit_transform(y_data)`.
 
 $$
-\overline{P}_m(\boldsymbol{x})=\sum_{p,q=1}^{n_{\mathrm{train}}}\kappa_m(\boldsymbol{x},\boldsymbol{x}_p)
-\left(K_m^{-1}\right)_{pq}P_q,
+\overline{P}\_m(\boldsymbol{x})=\sum\_{p,q=1}^{n\_{\mathrm{train}}}\kappa\_m(\boldsymbol{x},\boldsymbol{x}\_p)
+\left(K\_m^{-1}\right)\_{pq}P\_q,
 \qquad
-\sigma^2_{P,m}(\boldsymbol{x})=\kappa_m(\boldsymbol{x},\boldsymbol{x})
--\kappa_m^{T}K_m^{-1}\kappa_m
+\sigma^2\_{P,m}(\boldsymbol{x})=\kappa\_m(\boldsymbol{x},\boldsymbol{x})
+-\kappa\_m^{T}K\_m^{-1}\kappa\_m
 \tag{8}
 $$
 
 $$
-\kappa_m(\boldsymbol{x},\boldsymbol{x}')=C_m^2\exp\!\left(-\frac{\|\boldsymbol{x}-\boldsymbol{x}'\|_2^2}{2l_m^2}\right),
+\kappa\_m(\boldsymbol{x},\boldsymbol{x}')=C\_m^2\exp\negthinspace\left(-\frac{\Vert\boldsymbol{x}-\boldsymbol{x}'\Vert\_2^2}{2l\_m^2}\right),
 \qquad
-K_m=\kappa_m(\boldsymbol{x}_p,\boldsymbol{x}_q)+\sigma^2_{\mathrm{wn},m}\delta_{pq}
+K\_m=\kappa\_m(\boldsymbol{x}\_p,\boldsymbol{x}\_q)+\sigma^2\_{\mathrm{wn},m}\delta\_{pq}
 \tag{9}
 $$
 
 - Eq. (8) ↔ `gp.predict([x], return_std=True)`, one `GaussianProcessRegressor` per principal
   component in `Interpolator.gpr_model`.
-- $K_m$ ↔ `gp.kernel_(gp.X_train_)`; it **includes the white noise** on the diagonal, as in the paper.
-- $l_m,C_m,\sigma^2_{\mathrm{wn},m}$ ↔ `gp.kernel_.k1.k2.length_scale`, `gp.kernel_.k1.k1.constant_value`,
+- $K\_m$ ↔ `gp.kernel_(gp.X_train_)`; it **includes the white noise** on the diagonal, as in the paper.
+- $l\_m,C\_m,\sigma^2\_{\mathrm{wn},m}$ ↔ `gp.kernel_.k1.k2.length_scale`, `gp.kernel_.k1.k1.constant_value`,
   `gp.kernel_.k2.noise_level`, i.e. the kernel built in `Interpolator.fit`:
   `ConstantKernel * RBF + WhiteKernel`, fitted with `normalize_y=True`.
-- $\boldsymbol{x}_p$ ↔ `gp.X_train_`, $n_{\mathrm{train}}$ ↔ `gp.X_train_.shape[0]`.
+- $\boldsymbol{x}\_p$ ↔ `gp.X_train_`, $n\_{\mathrm{train}}$ ↔ `gp.X_train_.shape[0]`.
 
 ### 5. Analytic potential gradient
 
-The leapfrog integrator needs $\partial V/\partial x_i$, Eq. (10). For `analytical=False` the code
+The leapfrog integrator needs $\partial V/\partial x\_i$, Eq. (10). For `analytical=False` the code
 does **not** finite-difference the potential: `Interpolator.predict_with_grad` + `MCMCSampler.gradient`
 evaluate the derivative analytically (one emulator call per gradient instead of $d+1$).
 
 $$
-\frac{\partial V}{\partial x_i}
+\frac{\partial V}{\partial x\_i}
 =\frac{1}{f}\left[
-\Delta\boldsymbol{y}^{T}\Sigma^{-1}\frac{\partial\Delta\boldsymbol{y}}{\partial x_i}
--\frac{1}{2}\Delta\boldsymbol{y}^{T}\Sigma^{-1}\frac{\partial\Sigma}{\partial x_i}\Sigma^{-1}\Delta\boldsymbol{y}
+\Delta\boldsymbol{y}^{T}\Sigma^{-1}\frac{\partial\Delta\boldsymbol{y}}{\partial x\_i}
+-\frac{1}{2}\Delta\boldsymbol{y}^{T}\Sigma^{-1}\frac{\partial\Sigma}{\partial x\_i}\Sigma^{-1}\Delta\boldsymbol{y}
 \right]
-+\frac{1}{2}\mathrm{tr}\left(\Sigma^{-1}\frac{\partial\Sigma}{\partial x_i}\right)
++\frac{1}{2}\mathrm{tr}\left(\Sigma^{-1}\frac{\partial\Sigma}{\partial x\_i}\right)
 \tag{10}
 $$
 
 | Term | Code (in `MCMCSampler.gradient`) |
 |---|---|
-| $\Delta\boldsymbol{y}^{T}\Sigma^{-1}\partial\Delta\boldsymbol{y}/\partial x_i$ | `residual = delta_y @ Cov_inv @ dy_dx[:, i]` |
-| $\Delta\boldsymbol{y}^{T}\Sigma^{-1}(\partial\Sigma/\partial x_i)\Sigma^{-1}\Delta\boldsymbol{y}$ | `quadratic = delta_y @ Cov_inv @ dCov @ Cov_inv @ delta_y` |
-| $\mathrm{tr}(\Sigma^{-1}\partial\Sigma/\partial x_i)$ | `trace = np.trace(Cov_inv @ dCov)` |
+| $\Delta\boldsymbol{y}^{T}\Sigma^{-1}\partial\Delta\boldsymbol{y}/\partial x\_i$ | `residual = delta_y @ Cov_inv @ dy_dx[:, i]` |
+| $\Delta\boldsymbol{y}^{T}\Sigma^{-1}(\partial\Sigma/\partial x\_i)\Sigma^{-1}\Delta\boldsymbol{y}$ | `quadratic = delta_y @ Cov_inv @ dCov @ Cov_inv @ delta_y` |
+| $\mathrm{tr}(\Sigma^{-1}\partial\Sigma/\partial x\_i)$ | `trace = np.trace(Cov_inv @ dCov)` |
 | full assembly | `grad[i] = (residual - 0.5*quadratic)/f + 0.5*trace` |
 
 $$
-\frac{\partial\Delta\boldsymbol{y}}{\partial x_i}
-=\boldsymbol{U}^{\dagger}\frac{\partial\boldsymbol{P}}{\partial x_i}
+\frac{\partial\Delta\boldsymbol{y}}{\partial x\_i}
+=\boldsymbol{U}^{\dagger}\frac{\partial\boldsymbol{P}}{\partial x\_i}
 \tag{11}
 $$
 
 ↔ `dy_dx = Unitary.T @ dP_dx_pca`, shape `(N, d)`, in `Interpolator.predict_with_grad`.
 
 $$
-\frac{\partial\overline{P}_m(\boldsymbol{x})}{\partial x_i}
-=-\frac{1}{l_m^{2}}\sum_{p=1}^{n_{\mathrm{train}}}(x-x_p)_i\,
-\kappa_m(\boldsymbol{x},\boldsymbol{x}_p)\left(K_m^{-1}P\right)_p
+\frac{\partial\overline{P}\_m(\boldsymbol{x})}{\partial x\_i}
+=-\frac{1}{l\_m^{2}}\sum\_{p=1}^{n\_{\mathrm{train}}}(x-x\_p)\_i\thinspace
+\kappa\_m(\boldsymbol{x},\boldsymbol{x}\_p)\left(K\_m^{-1}P\right)\_p
 \tag{12}
 $$
 
 ↔ `v = kappa * K_inv_P`, `dP_dx = -(x * v.sum() - v @ X_train) / l_m**2`, where
 `K_inv_P = K_inv @ (P_train - y_mean)` — the de-meaned training targets, precomputed in
 `Interpolator._ensure_gradient_cache` (`y_mean` = `gp._y_train_mean`, the `normalize_y` offset) —
-and $\kappa_m(\boldsymbol{x},\boldsymbol{x}_p)$ ↔ `gp.kernel_(x[None, :], gp.X_train_)`.
+and $\kappa\_m(\boldsymbol{x},\boldsymbol{x}\_p)$ ↔ `gp.kernel_(x[None, :], gp.X_train_)`.
 
 $$
-\frac{\partial\sigma^2_{P,m}(\boldsymbol{x})}{\partial x_i}
-=\frac{2}{l_m^{2}}\sum_{p=1}^{n_{\mathrm{train}}}(x-x_p)_i\,
-\kappa_m(\boldsymbol{x},\boldsymbol{x}_p)\left(K_m^{-1}\kappa_m(\boldsymbol{x})\right)_p
+\frac{\partial\sigma^2\_{P,m}(\boldsymbol{x})}{\partial x\_i}
+=\frac{2}{l\_m^{2}}\sum\_{p=1}^{n\_{\mathrm{train}}}(x-x\_p)\_i\thinspace
+\kappa\_m(\boldsymbol{x},\boldsymbol{x}\_p)\left(K\_m^{-1}\kappa\_m(\boldsymbol{x})\right)\_p
 \tag{13}
 $$
 
 ↔ `g = kappa * (K_inv @ kappa)`, `dvar_dx = 2 * y_std**2 * (x * g.sum() - g @ X_train) / l_m**2`.
 The factor `y_std**2` is `gp._y_train_std ** 2`: `normalize_y=True` makes `predict(..., return_std=True)`
 return the variance rescaled to physical units, so the derivative must carry the same rescaling to be
-the derivative of the $\Sigma_{\mathrm{th}}$ actually used in $\chi^2$ (it is $1$ if `normalize_y=False`).
-The kernel-space term $\kappa_m(\boldsymbol{x},\boldsymbol{x})$ and the white-noise floor are
+the derivative of the $\Sigma\_{\mathrm{th}}$ actually used in $\chi^2$ (it is $1$ if `normalize_y=False`).
+The kernel-space term $\kappa\_m(\boldsymbol{x},\boldsymbol{x})$ and the white-noise floor are
 $\boldsymbol{x}$-independent, so they drop out of Eq. (13).
 
 $$
-\frac{\partial\Sigma}{\partial x_i}
-=\frac{\partial\Sigma_{\mathrm{th}}}{\partial x_i}
-=2\,\boldsymbol{U}^{\dagger}\,\mathrm{diag}\!\left(\frac{\partial\sigma^2_{P,m}}{\partial x_i}\right)\boldsymbol{U}
+\frac{\partial\Sigma}{\partial x\_i}
+=\frac{\partial\Sigma\_{\mathrm{th}}}{\partial x\_i}
+=2\thinspace\boldsymbol{U}^{\dagger}\thinspace\mathrm{diag}\negthinspace\left(\frac{\partial\sigma^2\_{P,m}}{\partial x\_i}\right)\boldsymbol{U}
 \tag{14}
 $$
 
 ↔ `dCov = self.interpolator.sigma_th_from_var(dvar_dx[:, i])` — the same routine that builds
-$\Sigma_{\mathrm{th}}$ in Eq. (7), so the factor 2 and the decoding matrix have a single source of truth.
+$\Sigma\_{\mathrm{th}}$ in Eq. (7), so the factor 2 and the decoding matrix have a single source of truth.
 
 Precomputed once per chain, in `Interpolator._ensure_gradient_cache`: `X_train`, `K_inv`,
 `K_inv_P`, `length_scale`, `y_std`. Everything else is assembled per evaluation.
@@ -350,7 +351,7 @@ H(\boldsymbol{x},\boldsymbol{p})=\frac{\boldsymbol{p}^{T}\boldsymbol{p}}{2m}+V(\
 $$
 
 $$
-\xi<\exp\!\left[-\frac{H(\boldsymbol{x}',\boldsymbol{p}')-H(\boldsymbol{x},\boldsymbol{p})}{T}\right]
+\xi<\exp\negthinspace\left[-\frac{H(\boldsymbol{x}',\boldsymbol{p}')-H(\boldsymbol{x},\boldsymbol{p})}{T}\right]
 \tag{16}
 $$
 
@@ -358,24 +359,24 @@ $$
   `Hamiltonian_present = 0.5 * (Nx_present + p_initial @ p_initial.T)` with `Nx_present = chi_square(x)`,
   i.e. Eq. (15).
 - Eq. (16) ↔ `accept_probability = min(1, np.exp(-(Hamiltonian_new - Hamiltonian_present)))`; a
-  fresh momentum is drawn for every trajectory and enters $H_{\text{present}}$ (see the comments in
+  fresh momentum is drawn for every trajectory and enters $H\_{\text{present}}$ (see the comments in
   `MCMCSampler.sample`).
 
 $$
-\hat{p}_i(t+\tfrac{\delta_t}{2})=\hat{p}_i(t)-\tfrac{\delta_t}{2}\frac{\partial V}{\partial\hat{x}_i}(t),
+\hat{p}\_i(t+\tfrac{\delta\_t}{2})=\hat{p}\_i(t)-\tfrac{\delta\_t}{2}\frac{\partial V}{\partial\hat{x}\_i}(t),
 \quad
-\hat{x}_i(t+\delta_t)=\hat{x}_i(t)+\delta_t\frac{\hat{p}_i(t+\tfrac{\delta_t}{2})}{m},
+\hat{x}\_i(t+\delta\_t)=\hat{x}\_i(t)+\delta\_t\frac{\hat{p}\_i(t+\tfrac{\delta\_t}{2})}{m},
 \quad
-\hat{p}_i(t+\delta_t)=\hat{p}_i(t+\tfrac{\delta_t}{2})-\tfrac{\delta_t}{2}\frac{\partial V}{\partial\hat{x}_i}(t+\delta_t)
+\hat{p}\_i(t+\delta\_t)=\hat{p}\_i(t+\tfrac{\delta\_t}{2})-\tfrac{\delta\_t}{2}\frac{\partial V}{\partial\hat{x}\_i}(t+\delta\_t)
 \tag{17}
 $$
 
 | Leapfrog step, Eq. (17) | Code (in `MCMCSampler.sample`) |
 |---|---|
-| $\partial V/\partial\hat{x}_i(t)$ | `grad_xt = self._potential_gradient(x_t)` |
+| $\partial V/\partial\hat{x}\_i(t)$ | `grad_xt = self._potential_gradient(x_t)` |
 | first half kick | `p_t_plus_halfdelta = p_t - (delta_t / 2) * grad_xt` |
 | drift | `x_t_plus_delta = x_t + delta_t * p_t_plus_halfdelta` |
-| $\partial V/\partial\hat{x}_i(t+\delta_t)$ | `grad_xt_plus_delta = self._potential_gradient(x_t_plus_delta)` |
+| $\partial V/\partial\hat{x}\_i(t+\delta\_t)$ | `grad_xt_plus_delta = self._potential_gradient(x_t_plus_delta)` |
 | second half kick | `p_t_plus_delta = p_t_plus_halfdelta - (delta_t / 2) * grad_xt_plus_delta` |
 
 Boundary handling: the flat prior truncates the posterior at `config.Bayesian_bound`, so a
@@ -391,10 +392,10 @@ faces and, in the finite-difference branch, spurious gradients of order $10^{10}
 | Quantity | `analytical=True` | `analytical=False` |
 |---|---|---|
 | $\boldsymbol{y}(\boldsymbol{x})$ | `config.analytical_model(x_full)` | PCA + GP, `Interpolator.predict` |
-| $\Sigma_{\mathrm{th}}(\boldsymbol{x})$ | $0$ | $2\boldsymbol{U}^{\dagger}\mathrm{diag}(\sigma^2)\boldsymbol{U}$, Eq. (7) |
-| $\Sigma(\boldsymbol{x})$ | $\Sigma_{\mathrm{exp}}$, $\boldsymbol{x}$-independent | $\Sigma_{\mathrm{th}}(\boldsymbol{x})+\Sigma_{\mathrm{exp}}$ |
+| $\Sigma\_{\mathrm{th}}(\boldsymbol{x})$ | $0$ | $2\boldsymbol{U}^{\dagger}\mathrm{diag}(\sigma^2)\boldsymbol{U}$, Eq. (7) |
+| $\Sigma(\boldsymbol{x})$ | $\Sigma\_{\mathrm{exp}}$, $\boldsymbol{x}$-independent | $\Sigma\_{\mathrm{th}}(\boldsymbol{x})+\Sigma\_{\mathrm{exp}}$ |
 | $\chi^2$ | `(chi_1 + logdet) / f` | `chi_1 / f + chi_2 + d*log(f)`, Eq. (5) |
-| $\partial V/\partial x_i$ | `approx_fprime` | analytic, `MCMCSampler.gradient`, Eq. (10) |
+| $\partial V/\partial x\_i$ | `approx_fprime` | analytic, `MCMCSampler.gradient`, Eq. (10) |
 
 ## Emulator validation (`Check_emulator.py`)
 
@@ -404,24 +405,24 @@ A GP predicts a *distribution* of outputs, not a single value, so the test is
 not "does the emulator reproduce a full calculation?" but "are the calculations
 distributed the way the emulator claims?". This is the validation of
 Ref. [2], §4.3.4 and Fig. 4.9: for every principal component $m$ and every
-design point $\boldsymbol{x}_n$ held out of the training set, the normalized
+design point $\boldsymbol{x}\_n$ held out of the training set, the normalized
 residual
 
 $$
-z_{m,n}=\frac{P_m^{\mathrm{pred}}(\boldsymbol{x}_n)-P_m^{\mathrm{true}}(\boldsymbol{x}_n)}{\sigma_{P,m}(\boldsymbol{x}_n)}
+z\_{m,n}=\frac{P\_m^{\mathrm{pred}}(\boldsymbol{x}\_n)-P\_m^{\mathrm{true}}(\boldsymbol{x}\_n)}{\sigma\_{P,m}(\boldsymbol{x}\_n)}
 \sim \mathcal{N}(0,1)
 \tag{18}
 $$
 
 must follow a standard normal distribution. Here
 
-- $P_m^{\mathrm{pred}}(\boldsymbol{x}\_n)$ and $\sigma_{P,m}(\boldsymbol{x}\_n)$ are the mean and
-  standard deviation of `gp_m.predict(x_n, return_std=True)`. This $\sigma_{P,m}$ is exactly the
-  one that enters $\Sigma_{\mathrm{th}}(\boldsymbol{x})$, Eq. (7), so Eq. (18) tests the very
+- $P\_m^{\mathrm{pred}}(\boldsymbol{x}\_n)$ and $\sigma\_{P,m}(\boldsymbol{x}\_n)$ are the mean and
+  standard deviation of `gp_m.predict(x_n, return_std=True)`. This $\sigma\_{P,m}$ is exactly the
+  one that enters $\Sigma\_{\mathrm{th}}(\boldsymbol{x})$, Eq. (7), so Eq. (18) tests the very
   uncertainty the sampler relies on — including the kernel's white-noise term, which is the GP's
   model of the scatter of the training table;
-- $P_m^{\mathrm{true}}(\boldsymbol{x}_n)=\boldsymbol{u}\_m\cdot(\boldsymbol{y}\_{\mathrm{th}}(\boldsymbol{x}_n)-\overline{\boldsymbol{y}})$
-  is the truth projected onto the PCA basis of that fold, $\boldsymbol{u}_m$ being row $m$ of
+- $P\_m^{\mathrm{true}}(\boldsymbol{x}\_n)=\boldsymbol{u}\_m\cdot(\boldsymbol{y}\_{\mathrm{th}}(\boldsymbol{x}\_n)-\overline{\boldsymbol{y}})$
+  is the truth projected onto the PCA basis of that fold, $\boldsymbol{u}\_m$ being row $m$ of
   $\boldsymbol{U}$ (`pca.components_[m]`).
 
 Because the repository ships no separate validation sample, the held-out points are carved out of
@@ -442,7 +443,7 @@ $\mathcal{N}(0,1)$ means the predictive uncertainty is overestimated, a wider on
 underestimated. The plotted range stops at $z=\pm6$ — one extreme outlier would otherwise squeeze
 all five histograms into an unreadable spike — and the handful of points beyond it are not drawn
 but not hidden either: they are counted in the panel annotation and in the `max|z|` column.
-Only meaningful for `analytical=False`: with an analytical emulator $\Sigma_{\mathrm{th}}=0$ and
+Only meaningful for `analytical=False`: with an analytical emulator $\Sigma\_{\mathrm{th}}=0$ and
 there is no predictive uncertainty to validate.
 
 ## Output
@@ -472,7 +473,7 @@ shipped example configuration these are:
   (`Analysis.py`), never from a separate warm-start box.
 - The derivation note under `references/` (`partialV_analytic_derivation.md`) is written in
   Chinese; it documents the analytic potential gradient of §5, including the
-  $\Sigma_{\mathrm{th}} = 2\Sigma_{\mathrm{Gauss}}$ convention and the variance-inflation factor
+  $\Sigma\_{\mathrm{th}} = 2\Sigma\_{\mathrm{Gauss}}$ convention and the variance-inflation factor
   $f$ as it enters the likelihood.
 
 ## Citation
@@ -491,6 +492,23 @@ If you use this code in your work, please cite Ref. [1]:
     volume  = "114",
     pages   = "024912",
     year    = "2026"
+}
+```
+
+The code itself is archived on Zenodo and can be cited independently (v1.0.0,
+[10.5281/zenodo.22870937](https://doi.org/10.5281/zenodo.22870937); the concept DOI
+[10.5281/zenodo.22870936](https://doi.org/10.5281/zenodo.22870936) always resolves to the
+latest version):
+
+```bibtex
+@software{Zheng_universal_BA_2026,
+    author    = "Zheng, Shuhan",
+    title     = "{universal\_BA: general-purpose Bayesian parameter estimation}",
+    version   = "v1.0.0",
+    doi       = "10.5281/zenodo.22870937",
+    publisher = "Zenodo",
+    year      = "2026",
+    url       = "https://doi.org/10.5281/zenodo.22870937"
 }
 ```
 
