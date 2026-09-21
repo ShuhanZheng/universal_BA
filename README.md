@@ -415,12 +415,12 @@ $$
 
 must follow a standard normal distribution. Here
 
-- $P_m^{\mathrm{pred}}(\boldsymbol{x}_n)$ and $\sigma_{P,m}(\boldsymbol{x}_n)$ are the mean and
+- $P_m^{\mathrm{pred}}(\boldsymbol{x}\_n)$ and $\sigma_{P,m}(\boldsymbol{x}\_n)$ are the mean and
   standard deviation of `gp_m.predict(x_n, return_std=True)`. This $\sigma_{P,m}$ is exactly the
   one that enters $\Sigma_{\mathrm{th}}(\boldsymbol{x})$, Eq. (7), so Eq. (18) tests the very
   uncertainty the sampler relies on — including the kernel's white-noise term, which is the GP's
   model of the scatter of the training table;
-- $P_m^{\mathrm{true}}(\boldsymbol{x}_n)=\boldsymbol{u}_m\cdot(\boldsymbol{y}_{\mathrm{th}}(\boldsymbol{x}_n)-\overline{\boldsymbol{y}})$
+- $P_m^{\mathrm{true}}(\boldsymbol{x}_n)=\boldsymbol{u}\_m\cdot(\boldsymbol{y}\_{\mathrm{th}}(\boldsymbol{x}_n)-\overline{\boldsymbol{y}})$
   is the truth projected onto the PCA basis of that fold, $\boldsymbol{u}_m$ being row $m$ of
   $\boldsymbol{U}$ (`pca.components_[m]`).
 
