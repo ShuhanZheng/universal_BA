@@ -7,7 +7,7 @@ A self-contained Bayesian pipeline (PCA + Gaussian-process emulator + Hamiltonia
 distilled from the framework behind Ref. [1]. To apply it to a new problem you edit `Input.py`
 only; the analyser in `Class.py` stays untouched.
 
-Given experimental data $y_{\rm exp}$ with covariance $\{\Sigma_{\mathrm{exp}}\}$ and a simulator — either an explicit function $y(x)$ or a table of theory predictions $\{\boldsymbol{y}_{\mathrm{th}}(\boldsymbol{x}_n)\}$ — it samples the posterior of the parameters.
+Given experimental data $\boldsymbol{y}_{\rm exp}$ with covariance $\{\Sigma_{\mathrm{exp}}\}$ and a simulator — either an explicit function $y(x)$ or a table of theory predictions $\{\boldsymbol{y}_{\mathrm{th}}(\boldsymbol{x}_n)\}$ — it samples the posterior of the parameters.
 
 ## Layout
 
